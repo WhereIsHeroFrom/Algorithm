@@ -76,9 +76,8 @@ public:
 		// assert(m == other.n);
 		ret.Reset(me.n, other.m);
 		int i, j, k;
-		for (k = 0; k < me.m; k++) {
 		for (i = 0; i < me.n; i++) {
-			
+			for (k = 0; k < me.m; k++) {
 				LL v = me.pkData[i][k];
 				for (j = 0; j < other.m; j++) {
 					ret.pkData[i][j] += v * other.pkData[k][j];
@@ -181,14 +180,14 @@ int main() {
 	A.Reset(4, 4, AArray);
 	B.Reset(4, 1, BArray);
 	
-	/*Matrix::GetPow(A, 1, ret1); ret1.Print();
+	Matrix::GetPow(A, 1, ret1); ret1.Print();
 	Matrix::GetPow(A, 2, ret1); ret1.Print();
 	Matrix::GetPow(A, 3, ret1); ret1.Print();
 	Matrix::GetPow(A, 4, ret1); ret1.Print();
 	Matrix::GetPow(A, 5, ret1); ret1.Print();
 	Matrix::GetPow(A, 6, ret1); ret1.Print();
 	Matrix::GetPow(A, 7, ret1); ret1.Print();
-	Matrix::GetPow(A, 8, ret1); ret1.Print();*/
+	Matrix::GetPow(A, 8, ret1); ret1.Print();
 	
 	
 	int t;
