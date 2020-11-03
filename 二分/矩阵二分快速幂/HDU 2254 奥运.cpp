@@ -1,10 +1,11 @@
 #include <iostream>
 #include <cstring>
+
 using namespace std;
 
-#define MAXN 40
+#define MAXN 60
 #define LL int
-LL MOD = 9937;
+LL MOD = 2008;
 
 class Matrix {
 private:
@@ -127,15 +128,27 @@ public:
 	// 扩展矩阵用于求A + A^2 + A^3 + ... + A^n
 	void getExtendMatrix(Matrix& ret, Matrix& I) {
 		ret.n = ret.m = n * 2;
+		ret.Reset(n * 2, n * 2);
 		ret.copyMatrix(*this, 0, 0);
 		ret.copyMatrix(*this, 0, n);
 		ret.copyMatrix(I, n, n);
 	}
 
+	// 获取 this 矩阵的 (r,c) - (n,m) 的子矩阵存到 ret
+	void getSubMatrix(Matrix& ret, int r, int c, int n, int m) {
+		ret.n = n;
+		ret.m = m;
+		for (int i = r; i < r + n; i++) {
+			for (int j = c; j < c + m; j++) {
+				ret.pkData[i - r][j - c] = pkData[i][j];
+			}
+		}
+	}
+
 	// 将矩阵A拷贝到当期矩阵的(r, c)位置
 	void copyMatrix(Matrix& A, int r, int c) {
 		for (int i = r; i < r + A.n; i++) {
-			for (int j = c; j < c + A.n; j++) {
+			for (int j = c; j < c + A.m; j++) {
 				pkData[i][j] = A.pkData[i - r][j - c];
 			}
 		}
@@ -162,124 +175,101 @@ LL BArray[MAXN][MAXN] = { 0 };
 // 2. 构造列向量
 // 3. 二分幂矩阵 * 列向量
 
+const int MASK = (1 << 17) - 1;
+int hashKey[MASK + 1], hashKeyCnt;
+unsigned int hashValue[MASK + 1];
 
-int n, m;
+int HASH(unsigned int val) {
+	int key = (val & MASK);
+	while (1) {
+		if (hashKey[key] == -1) {
+			hashKey[key] = hashKeyCnt++;
+			hashValue[key] = val;
+			return hashKey[key];
+		}
+		else {
+			if (hashValue[key] == val) {
+				return hashKey[key];
+			}
+			key = ((key + 1) & MASK);
+		}
+	}
+}
+
 Matrix A, B, ret1, ret2;
 
-void getState(int s, int a[4]) {
-	int i;
-	for (i = 0; i < 4; ++i) {
-		a[3 - i] = s % 5;
-		s /= 5;
+Matrix SAM, SBM, SI;
+
+int getAns(int N, int t, int v) {
+	if (t <= 0) {
+		return 0;
 	}
+
+	Matrix::Identity(N, SI);
+	A.getExtendMatrix(SAM, SI);
+	Matrix::GetPow(SAM, t, ret1);
+	ret1.getSubMatrix(ret2, 0, N, N, N);
+
+	Matrix::Multiply(ret2, B, ret1);
+	return ret1.get(v, 0);
 }
 
-int packState(int a[4]) {
-	int s = 0;
-	for (int i = 0; i < 4; ++i) {
-		s = s * 5 + a[i];
-	}
-	return s;
-}
-
-int from[4], to[4];
-int states[625], stateCount;
-int stateHash[625];
-int NState;
-
-int dir[4][3] = {
-	{ 0, 1, 2 },
-	{ 1, 3, 0 },
-	{ 2, 3, 0 },
-	{ 3, 2, 1 },
-};
-
-
-int c;
-void dfs(int index, int predir, int fromstate, int from[4], int to[4]) {
-
-	if (index == 4) {
-		++AArray[stateHash[fromstate]][stateHash[packState(to)]];
-		return;
-	}
-
-	if (from[index] == 0 && predir == 2) {
-		dfs(index + 1, -1, fromstate, from, to);
-	}
-	else {
-
-		int max = from[index];
-
-		for (int cnt = 0; cnt <= max; ++cnt) {
-			from[index] -= cnt;
-
-			if (predir < 2) {
-				int go = dir[index][predir + 1];
-				to[go] += cnt;
-				dfs(index, predir + 1, fromstate, from, to);
-				to[go] -= cnt;
-			}
-
-			from[index] += cnt;
-		}
-
-	}
-}
 
 int main() {
-	int t;
-	int i, j;
-	stateCount = 0;
+	int m;
+	while (scanf("%d", &m) != EOF) {
+		memset(hashKey, -1, sizeof(hashKey));
+		memset(AArray, 0, sizeof(AArray));
+		hashKeyCnt = 0;
+		while (m--) {
+			unsigned int x, y;
 
-	// 1. 因为四个机器人是相同的，所以状态可以进行压缩
-	for (i = 0; i < 625; ++i) {
-		getState(i, from);
-		int s = 0;
-		for (j = 0; j < 4; ++j) {
-			s += from[j];
+			scanf("%u %u", &x, &y);
+			int t = HASH(x);
+			int s = HASH(y);
+			++AArray[s][t];
+			if (AArray[s][t] >= MOD) AArray[s][t] -= MOD;
 		}
-		if (s == 4) {
-			states[stateCount] = i;
-			stateHash[i] = stateCount;
-
-			if (from[0] == from[1] && from[0] == from[2] && from[0] == from[3]) {
-				BArray[stateCount][0] = 1;
-				NState = stateCount;
+		int N = hashKeyCnt;
+		A.Reset(N, N, AArray);
+		int v1, v2, t1, t2;
+		int k, ans;
+		scanf("%d", &k);
+		while (k--) {
+			scanf("%d %d %d %d", &v1, &v2, &t1, &t2);
+			int s = HASH(v1);
+			int t = HASH(v2);
+			if (s >= N || t >= N) {
+				ans = 0;
 			}
 			else {
-				BArray[stateCount][0] = 0;
+				for (int i = 0; i < N; ++i) {
+					if (s == i) {
+						BArray[i][0] = 1;
+					}
+					else {
+						BArray[i][0] = 0;
+					}
+				}
+				B.Reset(N, 1, BArray);
+				ans = ((getAns(N, t2, t) - getAns(N, t1 - 1, t)) % MOD + MOD) % MOD;
 			}
-
-			++stateCount;
+			printf("%d\n", ans);
 		}
-	}
-
-
-	for (i = 0; i < stateCount; ++i) {
-		getState(states[i], from);
-		dfs(0, -1, states[i], from, to);
-
-	}
-
-	A.Reset(stateCount, stateCount, AArray);
-	B.Reset(stateCount, 1, BArray);
-
-	//A.Print();
-
-	while (scanf("%d", &n) != EOF) {
-		Matrix::GetPow(A, n, ret1);
-		Matrix::Multiply(ret1, B, ret2);
-		printf("%d\n", (int)ret2.get(NState, 0));
 	}
 	return 0;
 }
 
 /*
-9
-309
-3668
-7219
-3619
-
-
+6
+1 2
+1 3
+2 3
+3 2
+3 1
+2 1
+3
+1 2 0 0
+1 2 1 100
+4 8 3 50
 */
