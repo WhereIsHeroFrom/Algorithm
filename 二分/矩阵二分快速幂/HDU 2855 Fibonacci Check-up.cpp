@@ -189,12 +189,12 @@ Matrix Matrix::s_kMatrix[64];
 Matrix Matrix::s_kMultiplyTemp;
 
 LL AArray[MAXN][MAXN] = {
-	{3, -1},
-	{1, 0}
+	{2, 1},
+	{1, 1}
 };
 LL BArray[MAXN][MAXN] = {
 	{1},
-	{0}
+	{1}
 };
 
 LL Exp(LL a, LL b, LL c) {
@@ -255,7 +255,6 @@ int main() {
 			ans = n % m;
 		}else {
 			
-			AArray[0][1] = m - 1;
 			A.Reset(2, 2, AArray);
 			B.Reset(2, 1, BArray);
 			
