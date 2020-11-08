@@ -3,6 +3,7 @@
 #include <string>
 using namespace std;
 
+
 /*
 矩阵二分快速幂
 递推公式的神级加速，转换成矩阵幂求解；
