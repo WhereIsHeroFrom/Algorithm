@@ -1,11 +1,21 @@
 #include <iostream>
-#include <cstring>
-
+#include <string>
+#include <cmath>
 using namespace std;
 
-#define MAXN 4
-#define LL __int64
-LL MOD = 1000000000 + 7;
+
+/*
+矩阵二分快速幂
+递推公式的神级加速，转换成矩阵幂求解；
+矩阵相乘的最内层循环加和如果不溢出，则憋着不取模；
+Author: WhereIsHeroFrom
+Update Time: 2020-11-03
+Algorithm Complexity: O(m^3log(n))
+*/
+
+#define MAXN 2
+#define LL int
+int MOD = 46337;
 
 class Matrix {
 private:
@@ -90,6 +100,16 @@ public:
 		}
 	}
 
+	static void Add(const Matrix &me, const Matrix& other, Matrix& ret) {
+		ret.Reset(me.n, other.m);
+		int i, j;
+		for (i = 0; i < me.n; i++) {
+			for (j = 0; j < me.m; j++) {
+				ret.pkData[i][j] = (me.pkData[i][j] + other.pkData[i][j]) % MOD;
+			}
+		}
+	}
+
 	void Reset(int nn, int mm, LL data[][MAXN]) {
 		n = nn;
 		m = mm;
@@ -128,15 +148,27 @@ public:
 	// 扩展矩阵用于求A + A^2 + A^3 + ... + A^n
 	void getExtendMatrix(Matrix& ret, Matrix& I) {
 		ret.n = ret.m = n * 2;
+		ret.Reset(n * 2, n * 2);
 		ret.copyMatrix(*this, 0, 0);
 		ret.copyMatrix(*this, 0, n);
 		ret.copyMatrix(I, n, n);
 	}
 
+	// 获取 this 矩阵的 (r,c) - (n,m) 的子矩阵存到 ret
+	void getSubMatrix(Matrix& ret, int r, int c, int n, int m) {
+		ret.n = n;
+		ret.m = m;
+		for (int i = r; i < r + n; i++) {
+			for (int j = c; j < c + m; j++) {
+				ret.pkData[i - r][j - c] = pkData[i][j];
+			}
+		}
+	}
+
 	// 将矩阵A拷贝到当期矩阵的(r, c)位置
 	void copyMatrix(Matrix& A, int r, int c) {
 		for (int i = r; i < r + A.n; i++) {
-			for (int j = c; j < c + A.n; j++) {
+			for (int j = c; j < c + A.m; j++) {
 				pkData[i][j] = A.pkData[i - r][j - c];
 			}
 		}
@@ -150,101 +182,100 @@ public:
 			}
 			puts("");
 		}
-		puts("");
 	}
 };
 
 Matrix Matrix::s_kMatrix[64];
 Matrix Matrix::s_kMultiplyTemp;
 
-LL AArray[][MAXN] = {
+LL AArray[MAXN][MAXN] = {
 	{ 5, 12 },
-	{ 2, 5 },
+	{ 2, 5 }
 };
 
-LL BArray[][MAXN] = {
+LL BArray[MAXN][MAXN] = {
 	{ 5 },
-	{ 2 },
+	{ 2 }
 };
 
 LL Exp(LL a, LL b, LL c) {
-	if(b == 0) {
+	if (b == 0) {
 		return 1 % c;
 	}
-	LL tmp = Exp(a*a%c, (b>>1), c);
-	if(b&1) {
+	LL tmp = Exp(a*a % c, (b >> 1), c);
+	if (b & 1) {
 		tmp = tmp * a % c;
 	}
 	return tmp;
 }
+
 
 // 1. 构造系数矩阵
 // 2. 构造列向量
 // 3. 二分幂矩阵 * 列向量
 
 Matrix A, B, ret1, ret2;
-Matrix P[50000];
-int has[50000];
+Matrix N;
+int Pre[100000];
 
-Matrix GA, GB;
+// 返回值为K，代表矩阵 A^K = 单位矩阵
+LL Enum(int Mod) {
+	if (Pre[Mod]) {
+		return Pre[Mod];
+	}
+	LL i;
+	LL An, Bn, An_1, Bn_1;
+	LL A1 = 5, B1 = 2;
+	An_1 = A1;
+	Bn_1 = B1;
 
-LL GAArray[][MAXN] = {
-	{ 49, 120, 0, 0 },
-	{ 20, 49, 0, 0 },
-	{ 1, 0, 0, 0 },
-	{ 0, 1, 0, 0 },
-};
+	for (i = 2;; ++i) {
+		An = (5 * An_1 + 12 * Bn_1);
+		Bn = (2 * An_1 + 5 * Bn_1);
 
-LL GBArray[][MAXN] = {
-	{ 49, 120 },
-	{ 20, 49 },
-	{ 5, 12 },
-	{ 2, 5 },
-};
+		if (An >= Mod) An %= Mod;
+		if (Bn >= Mod) Bn %= Mod;
 
+		if (An == A1 && Bn == B1) {
+			Pre[Mod] = i - 1;
+			return i - 1;
+		}
+		An_1 = An;
+		Bn_1 = Bn;
+	}
+}
 
 int main() {
+	int i;
 	A.Reset(2, 2, AArray);
 	B.Reset(2, 1, BArray);
-	
-	GA.Reset(4, 4, GAArray);
-	GB.Reset(4, 2, GBArray);
-	
-	Matrix::GetPow(A, 2, ret1); ret1.Print();
-	Matrix::GetPow(A, 4, ret1); ret1.Print();
-	Matrix::GetPow(A, 8, ret1); ret1.Print();
-	
-	
-	Matrix::GetPow(GA, 0, ret1); Matrix::Multiply(ret1, GB, ret2); ret2.Print();
-	Matrix::GetPow(GA, 1, ret1); Matrix::Multiply(ret1, GB, ret2); ret2.Print();
-	Matrix::GetPow(GA, 2, ret1); Matrix::Multiply(ret1, GB, ret2); ret2.Print();
-	
-	int t, c = 0;
-	LL x;
+
+	int t, cas = 0;
+	__int64 x;
 	int M;
+
 	scanf("%d", &t);
-	while(t--) {
-		memset(has, -1, sizeof(has));
-		LL n, ans;
+
+	while (t--) {
 		scanf("%I64d %d", &x, &M);
 		MOD = M;
-		printf("Case #%d: ", ++c);
-		if(M == 2) {
-			printf("1\n");
-		}else {
-			int ans;
-			if(x < 3) {
-				Matrix::GetPow(A, (1<<x), ret1);
-				Matrix::Multiply(ret1, B, ret2);
-				ans = (ret2.get(0, 0) * 2 + M - 1) % M;
-			}else {
-				Matrix::GetPow(GA, x, ret1);
-				Matrix::Multiply(ret1, GB, ret2);
-				ret2.Print();
-				ans = (ret2.get(0, 0) * 5 + ret2.get(0, 1) * 2) % M;
-				ans = (ans * 2 + M - 1) % M;
-			}
-			printf("%d\n", ans); 
+		int ans;
+		if (M == 2) {
+			ans = 1;
 		}
+		else {
+			int K = Enum(MOD);
+			if (x == 0) {
+				ans = 97 % MOD;
+			}
+			else {
+				int p = Exp(2, x, K);
+				Matrix::GetPow(A, p, ret1);
+				Matrix::Multiply(ret1, B, ret2);
+				ans = (ret2.get(0, 0) * 2 + MOD - 1) % MOD;
+			}
+		}
+		printf("Case #%d: %d\n", ++cas, ans);
 	}
+	return 0;
 }
