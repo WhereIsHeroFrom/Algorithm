@@ -156,17 +156,9 @@ Matrix Matrix::s_kMatrix[64];
 Matrix Matrix::s_kMultiplyTemp;
 
 LL AArray[MAXN][MAXN] = {
-	{ 1, 4, 4, 1 },
-	{ 0, 4, 4, 1 },
-	{ 0, 2, 1, 0 },
-	{ 0, 1, 0, 0 },
 };
 
 LL BArray[MAXN][MAXN] = {
-	{ 1 },
-	{ 1 },
-	{ 0 },
-	{ 0 },
 };
 
 // 1. 构造系数矩阵
@@ -192,7 +184,7 @@ int main() {
 		for (i = 0; i < m; ++i) {
 			int x, y;
 			scanf("%d %d", &x, &y);
-			AArray[x][y] = 1;
+			AArray[y][x] = 1;
 		}
 		A.Reset(n, n, AArray);
 		int T;
@@ -200,9 +192,15 @@ int main() {
 		while (T--) {
 			int a, b, k;
 			scanf("%d %d %d", &a, &b, &k);
+			for (i = 0; i < n; ++i) {
+				BArray[i][0] = (a == i) ? 1 : 0;
+			}
+			B.Reset(n, 1, BArray);
 
 			Matrix::GetPow(A, k, ret1);
-			int ans = ret1.get(a, b);
+			Matrix::Multiply(ret1, B, ret2);
+
+			int ans = ret2.get(b, 0);
 			printf("%d\n", ans);
 		}
 
