@@ -7,7 +7,7 @@
 4. 当旁边有 B、R、G，可以放 Y ；
 求所有在格子上的块的分数之和达到 w 的最小步数；
 
-题解：BFS + 预处理（BFS最重要的就是状态分析）
+题解：BFS （BFS最重要的就是状态分析）
 1）每个格子总共有 5（B/R/G/Y/空白） 种状态，所以9个格子总共 5^9 种状态 (实际上由于各种限制，状态数远小于这个值)；
 2）四种格子的分数总和只和他们的【组合】有关系，和【排列】没关系，所以可以事先筛选出所有的组合，每个的范围为 [0,9], 加起来的值 <= 9，预先筛选出来，总共 715 种情况；
 3）将所有这 715 种状态，对应的分数和计算出来，如果分数和大于等于w的，则把这个状态标记为 1，否则标记为 0；
@@ -24,6 +24,7 @@
 4 号块需要满足的条件是:   位组结果  & 111 == 111
 
 7）注意，这里每次搜索其实都是重复的，所以可以预先跑一次广搜把所有状态需要消耗多少步都先跑出来，然后根据输入计算可行情况；
+
 */
 
 #include <iostream>
@@ -34,6 +35,7 @@ using namespace std;
 #define COMB_MAX 10000
 #define MAXC 3
 bool validState[COMB_MAX];
+int combStateStep[COMB_MAX];
 
 const int BLOCK_TOTAL_MASK[5] = { -1, 0, 1, 3, 7 };
 const int BLOCK_SINGLE_MASK[5] = { 0, 1, 2, 4, 8 };
@@ -71,26 +73,14 @@ bool outOfBound(int posx, int posy) {
 	return posx < 0 || posx >= 3 || posy < 0 || posy >= 3;
 }
 
-struct State {
-	int arrageState;
-	int combState;
-	int cnt;
-
-	State() {}
-	State(int _a, int _c, int _cnt) : arrageState(_a), combState(_c), cnt(_cnt) {
-	}
-}allState[300000];
-int stateTop;
-
 void bfs() {
 	int block, pos, d;
 	memset(step, -1, sizeof(step));
+	memset(combStateStep, -1, sizeof(combStateStep));
 
 	queue <int> Q;
-	stateTop = 0;
 	Q.push(0);
 	step[0] = 0;
-	allState[stateTop++] = State(0, 0, 0);
 
 
 	while (!Q.empty()) {
@@ -119,7 +109,9 @@ void bfs() {
 					if (step[nextState] == -1) {
 						Q.push(nextState);
 						step[nextState] = step[nowState] + 1;
-						allState[stateTop++] = State(nextState, changeToComb(nextState), step[nextState]);
+
+						int combState = changeToComb(nextState);
+						if (combStateStep[combState] == -1) combStateStep[combState] = step[nextState];
 					}
 				}
 			}
@@ -146,10 +138,10 @@ int main() {
 			}
 		}
 		int ans = -1;
-		for (i = 0; i < stateTop; ++i) {
-			if (validState[allState[i].combState]) {
-				if (allState[i].cnt < ans || ans == -1) {
-					ans = allState[i].cnt;
+		for (i = 0; i < COMB_MAX; ++i) {
+			if (validState[i] && combStateStep[i] != -1) {
+				if (combStateStep[i] < ans || ans == -1) {
+					ans = combStateStep[i];
 				}
 			}
 		}
