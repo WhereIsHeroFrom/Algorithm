@@ -1,258 +1,5 @@
 ```mermaid
 	graph LR;
-	Algorithm --> .git
-	.git --> hooks
-	.git --> info
-	.git --> logs
-	logs --> refs
-	refs --> heads
-	refs --> remotes
-	remotes --> origin
-	.git --> objects
-	objects --> 00
-	objects --> 01
-	objects --> 02
-	objects --> 03
-	objects --> 04
-	objects --> 05
-	objects --> 06
-	objects --> 07
-	objects --> 08
-	objects --> 09
-	objects --> 0a
-	objects --> 0b
-	objects --> 0c
-	objects --> 0d
-	objects --> 0e
-	objects --> 0f
-	objects --> 10
-	objects --> 11
-	objects --> 12
-	objects --> 13
-	objects --> 14
-	objects --> 15
-	objects --> 16
-	objects --> 17
-	objects --> 18
-	objects --> 19
-	objects --> 1a
-	objects --> 1c
-	objects --> 1d
-	objects --> 1f
-	objects --> 20
-	objects --> 21
-	objects --> 22
-	objects --> 23
-	objects --> 24
-	objects --> 25
-	objects --> 26
-	objects --> 27
-	objects --> 28
-	objects --> 29
-	objects --> 2a
-	objects --> 2b
-	objects --> 2c
-	objects --> 2d
-	objects --> 2e
-	objects --> 30
-	objects --> 31
-	objects --> 32
-	objects --> 33
-	objects --> 34
-	objects --> 35
-	objects --> 36
-	objects --> 37
-	objects --> 38
-	objects --> 39
-	objects --> 3a
-	objects --> 3b
-	objects --> 3c
-	objects --> 3d
-	objects --> 3e
-	objects --> 3f
-	objects --> 40
-	objects --> 41
-	objects --> 42
-	objects --> 43
-	objects --> 44
-	objects --> 45
-	objects --> 46
-	objects --> 47
-	objects --> 48
-	objects --> 49
-	objects --> 4a
-	objects --> 4b
-	objects --> 4c
-	objects --> 4d
-	objects --> 4e
-	objects --> 4f
-	objects --> 50
-	objects --> 52
-	objects --> 53
-	objects --> 54
-	objects --> 55
-	objects --> 56
-	objects --> 57
-	objects --> 58
-	objects --> 59
-	objects --> 5a
-	objects --> 5b
-	objects --> 5c
-	objects --> 5d
-	objects --> 5e
-	objects --> 5f
-	objects --> 60
-	objects --> 61
-	objects --> 62
-	objects --> 63
-	objects --> 64
-	objects --> 65
-	objects --> 66
-	objects --> 67
-	objects --> 68
-	objects --> 69
-	objects --> 6a
-	objects --> 6d
-	objects --> 6e
-	objects --> 6f
-	objects --> 70
-	objects --> 71
-	objects --> 72
-	objects --> 73
-	objects --> 74
-	objects --> 75
-	objects --> 76
-	objects --> 77
-	objects --> 78
-	objects --> 79
-	objects --> 7a
-	objects --> 7b
-	objects --> 7c
-	objects --> 7d
-	objects --> 7e
-	objects --> 7f
-	objects --> 80
-	objects --> 81
-	objects --> 82
-	objects --> 83
-	objects --> 84
-	objects --> 85
-	objects --> 86
-	objects --> 87
-	objects --> 88
-	objects --> 89
-	objects --> 8a
-	objects --> 8b
-	objects --> 8c
-	objects --> 8e
-	objects --> 90
-	objects --> 91
-	objects --> 92
-	objects --> 93
-	objects --> 94
-	objects --> 95
-	objects --> 96
-	objects --> 97
-	objects --> 98
-	objects --> 99
-	objects --> 9a
-	objects --> 9c
-	objects --> 9d
-	objects --> 9e
-	objects --> a0
-	objects --> a1
-	objects --> a2
-	objects --> a3
-	objects --> a4
-	objects --> a5
-	objects --> a6
-	objects --> a7
-	objects --> a8
-	objects --> a9
-	objects --> aa
-	objects --> ab
-	objects --> ac
-	objects --> ad
-	objects --> af
-	objects --> b0
-	objects --> b1
-	objects --> b2
-	objects --> b4
-	objects --> b6
-	objects --> b7
-	objects --> b8
-	objects --> b9
-	objects --> ba
-	objects --> bb
-	objects --> bc
-	objects --> bd
-	objects --> be
-	objects --> bf
-	objects --> c1
-	objects --> c2
-	objects --> c3
-	objects --> c4
-	objects --> c5
-	objects --> c6
-	objects --> c8
-	objects --> c9
-	objects --> ca
-	objects --> cc
-	objects --> cd
-	objects --> ce
-	objects --> cf
-	objects --> d0
-	objects --> d1
-	objects --> d2
-	objects --> d3
-	objects --> d4
-	objects --> d5
-	objects --> d6
-	objects --> d7
-	objects --> d8
-	objects --> d9
-	objects --> da
-	objects --> db
-	objects --> dc
-	objects --> dd
-	objects --> de
-	objects --> df
-	objects --> e0
-	objects --> e1
-	objects --> e2
-	objects --> e3
-	objects --> e4
-	objects --> e5
-	objects --> e6
-	objects --> e8
-	objects --> e9
-	objects --> ea
-	objects --> eb
-	objects --> ed
-	objects --> ee
-	objects --> ef
-	objects --> f0
-	objects --> f2
-	objects --> f3
-	objects --> f4
-	objects --> f5
-	objects --> f6
-	objects --> f7
-	objects --> f8
-	objects --> f9
-	objects --> fa
-	objects --> fb
-	objects --> fc
-	objects --> fd
-	objects --> fe
-	objects --> ff
-	objects --> info
-	objects --> pack
-	.git --> refs
-	refs --> heads
-	refs --> remotes
-	remotes --> origin
-	refs --> tags
 	Algorithm --> C++基础应用
 	C++基础应用 --> ASCII码基础应用
 	C++基础应用 --> STL
@@ -278,11 +25,15 @@
 	Algorithm --> 动态规划
 	动态规划 --> 区间DP
 	动态规划 --> 单调队列
+	动态规划 --> 博弈
+	博弈 --> SG函数
+	博弈 --> 找规律
 	动态规划 --> 四边形不等式
 	动态规划 --> 插头DP
 	动态规划 --> 数位DP
 	动态规划 --> 斜率优化
 	动态规划 --> 最大子段
+	动态规划 --> 最大子矩阵
 	动态规划 --> 最长单调子序列
 	动态规划 --> 树形动规
 	动态规划 --> 滚动数组
@@ -291,9 +42,6 @@
 	动态规划 --> 简单动态规划
 	动态规划 --> 背包问题
 	动态规划 --> 记忆化搜索
-	Algorithm --> 博弈
-	博弈 --> SG函数
-	博弈 --> 找规律
 	Algorithm --> 哈希表
 	Algorithm --> 字符串
 	字符串 --> AC自动机
@@ -359,7 +107,6 @@
 	数论 --> 欧拉函数
 	欧拉函数 --> 费马小定理
 	数论 --> 素数筛选
-	数论 --> 线性同余
 	数论 --> 辗转相除
 	数学 --> 组合数学
 	组合数学 --> Polya
@@ -407,9 +154,11 @@
 	计算几何 --> 模拟退火
 	计算几何 --> 点乘
 	计算几何 --> 点的旋转
+	计算几何 --> 直线球体交
 	计算几何 --> 线段判交
 	Algorithm --> 贪心
 	贪心 --> 霍夫曼编码
+	Algorithm --> 随机
 	Algorithm --> 预处理
 	Algorithm --> 高精度
 ```
