@@ -1,0 +1,159 @@
+/*
+    并查集：奇环问题（01树）
+*/
+
+#include <iostream>
+#include <cstring>
+#include <vector>
+
+using namespace std;
+
+
+const int MAXN = 1003010;
+int fset[MAXN], rk[MAXN], sum[MAXN];
+int n;
+
+void init_set(int n) {
+    for (int i = 0; i <= n; ++i) {
+        fset[i] = i;
+        rk[i] = 0;
+        sum[i] = 1;
+    }
+}
+
+int find_set(int x) {
+    return (fset[x] == x) ? x : find_set(fset[x]);
+}
+
+int find_depth(int x) {
+    return (fset[x] == x) ? 0 : 1 + find_depth(fset[x]);
+}
+
+int add_set(int x) {
+    fset[x] = ++n;
+    rk[fset[x]] = rk[x] + 1;
+    return fset[x];
+}
+
+bool union_set(int x, int y, int op) {
+    int fx = find_set(x), fy = find_set(y);
+    int dx = find_depth(x), dy = find_depth(y);
+    int mod = ((dx - dy) & 1);
+
+    if (fx == fy) {
+        // 根节点一样，则需要判断奇偶性，深度相减为偶数，说明出现了奇环
+        return mod == op;
+    }
+
+    if ( ((mod + op) & 1) == 0 ) {
+        // 奇偶性 不一致的情况：深度小的那个需要增加一个 伪根 
+        if (rk[fx] < rk[fy]) {
+            fx = add_set(fx);
+        }
+        else {
+            fy = add_set(fy);
+        }
+    }
+
+    // 奇偶性 一致的情况：直接连接根
+    if (rk[fx] == rk[fy]) {
+        ++rk[fx];
+        fset[fy] = fx;
+        sum[fx] += sum[fy];
+    }
+    else if (rk[fx] < rk[fy]) {
+        fset[fx] = fy;
+        sum[fy] += sum[fx];
+    }
+    else {
+        fset[fy] = fx;
+        sum[fx] += sum[fy];
+    }
+
+    return true;
+}
+
+int p1, p2;
+int totalSet[2];
+
+
+/*
+         
+    说的那个人\被说的那个人| 天使 | 恶魔
+                    -|-|-
+        天使 | 同集合 | 不同集合
+        恶魔 | 同集合 | 不同集合
+
+*/
+
+int main() {
+    int i, j, k;
+
+    while (scanf("%d %d %d", &n, &p1, &p2) != EOF && (n || p1 || p2)) {
+        init_set(MAXN - 1);
+        bool f = false;
+        int MaxN = n;
+        n = p1 + p2;
+        if (p1 == p2) {
+            f = true;
+        }
+        for (i = 0; i < MaxN; ++i) {
+            int x, y;
+            char  c[10];
+            scanf("%d %d %s", &x, &y, c);
+            
+            if (f) continue;
+
+            int tp = (c[0] == 'y') ? 0 : 1;
+
+            if (!union_set(x, y, tp)) {
+                f = true;
+            }
+        }
+
+        if (sum[find_set(1)] != p1 + p2) {
+            f = true;
+        }
+        else {
+            totalSet[0] = totalSet[1] = 0;
+            for (i = 1; i <= p1 + p2; ++i) {
+                ++totalSet[find_depth(i) & 1];
+            }
+
+            if (p1 == totalSet[1] && p2 == totalSet[0]) {
+                int tmp = totalSet[1];
+                totalSet[1] = totalSet[0];
+                totalSet[0] = tmp;
+            }
+
+            if (p1 != totalSet[0] || p2 != totalSet[1]) {
+                f = true;
+            }
+
+        }
+
+        if (f) {
+            puts("no");
+        }else{
+            for (i = 1; i <= p1 + p2; ++i) {
+                if (( find_depth(i) & 1) == 0) {
+                    continue;
+                }
+                printf("%d\n", i);
+            }
+            puts("end");
+        }
+
+    }
+
+    return 0;
+}
+
+/*
+5 4 3
+1 2 yes
+1 3 no
+4 5 yes
+5 6 yes
+6 7 no
+*/
