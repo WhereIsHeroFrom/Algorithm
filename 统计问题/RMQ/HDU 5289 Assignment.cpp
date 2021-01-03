@@ -26,16 +26,12 @@ void RMQ_Init(ValueType A[], int ALen, int(*f)[MAXN]) {
 		if ((1 << k) == i) k++;
 	}
 	for (i = 0; i < MAXM; i++) {
-		for (j = 1; j <= ALen; j++) {
+		for (j = 1; j + (1<<i) - 1 <= ALen; j++) {
 			if (i == 0) {
 				f[i][j] = j;
 			}
 			else {
-				f[i][j] = f[i-1][j];
-				int ridx = j + (1 << (i - 1));
-				if (ridx <= ALen) {
-					f[i][j] = RMQ_MinIndex(A, f[i-1][j], f[i-1][ridx]);
-				}
+				f[i][j] = RMQ_MinIndex(A, f[i-1][j], f[i-1][j + (1 << (i - 1))]);
 			}
 		}
 	}

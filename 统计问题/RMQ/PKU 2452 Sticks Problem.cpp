@@ -54,90 +54,58 @@ int RMQ_Query(ValueType A[], int(*f)[MAXN], int a, int b) {
 	return RMQ_MinIndex(A, f[k][a], f[k][b - (1 << k) + 1]);
 }
 
+ValueType MinVal[MAXN], MaxVal[MAXN];
+int fMin[MAXM][MAXN], fMax[MAXM][MAXN];
+int n;
 
-ValueType fMax[MAXM][MAXN];
-ValueType a[MAXN];
-ValueType vMax[MAXN], sum[MAXN];
-int Index[MAXN];
-
-int Max(int x, int y) {
-	return x > y ? x : y;
-}
 
 int main() {
-	int n, m;
-	int i;
-	int L = 0;
-
-	while(scanf( "%d %d", &n, &m ) != EOF && n) {
-		a[0] = -100000000;
-		L = 0;
-		for(i = 1; i <= n; ++i) {
-			scanf("%d", &a[i]);
-			if(a[i] != a[i-1]) {
-				vMax[++L] = 1;
-			}else {
-				++vMax[L];
-			}
-			Index[i] = L;
+	
+	while(scanf("%d", &n) != EOF) {
+		for(int i = 1; i <= n; ++i) {
+			scanf("%d", &MinVal[i]);
+			MaxVal[i] = - MinVal[i];
 		}
-		sum[0] = 0;
-		for(i = 1; i <= L; ++i) {
-			sum[i] = sum[i-1] + vMax[i];
-			//printf("%d %d\n", sum[i], vMax[i]);
-			
-			vMax[i] = -vMax[i];
-		}
-		RMQ_Init(vMax, L, fMax);
+		RMQ_Init(MinVal, n, fMin);
+		RMQ_Init(MaxVal, n, fMax);
 		
-		while(m--) {
-			int l, r;
-			int idxl, idxr;
-			scanf("%d %d", &l, &r);
-			
-			idxl = Index[l];
-			idxr = Index[r];
-			
-			int ans = 0;
-			if(idxl == idxr) {
-				ans = r - l + 1;
-			}else if( idxl + 1 <= idxr ) {
-				ans = Max(sum[idxl] - l + 1,
-				r - sum[idxr - 1] );
-				
-				if( idxl + 1 != idxr ) {
-					int v = - vMax[ RMQ_Query(vMax, fMax, idxl + 1, idxr - 1) ];
-					ans = Max(ans, v);
+		int ans = -1;
+		for(int i = 1; i <= n; ++i) {
+			int l = i+1, r = n;
+			int now = -1;
+			while(l <= r) {
+				int mid = (l + r) >> 1;
+				int min = MinVal[ RMQ_Query(MinVal, fMin, i+1, mid) ];
+				if(min > MinVal[i]) {
+					now = mid;
+					l = mid + 1;
+				}else {
+					r = mid - 1;
 				}
 			}
-			printf("%d\n", ans);
+			if(now != -1) {
+				int max = RMQ_Query(MaxVal, fMax, i+1, now);	
+				if( ans == -1 || max - i > ans ) {
+					ans = max - i;
+				}
+			}
 		}
-		
-	} 
-	
+		printf("%d\n", ans);
+	}
 	
 	return 0;
-}
+} 
+
 /*
+7
+1 2 5 7 6 8 4
 
-10 10
--1 -1 1 1 1 1 3 10 10 10
-2 3
-1 10
-5 10
-3 6
+10
+1 2 3 4 5 6 7 8 9 10
 
+10
+9 8 7 6 5 4 3 2 1 0
 
-idx|i|sum[i]
-1  1   2
-2  1   2
-3  2   6
-4  2   6
-5  2   6
-6  2   6
-7  3   7
-8  4  10
-9  4  10
-10 4  10
+10
+1 3 2 5 4 7 6 9 8 10
 */
-
