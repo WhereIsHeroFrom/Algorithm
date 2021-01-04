@@ -20,21 +20,21 @@ int RMQ_MinIndex(ValueType A[], int l, int r) {
 
 // f[i][j] = opt(f[i-1][j], f[i-1][j + 2^{i-1}]);
 void RMQ_Init(ValueType A[], int ALen, int(*f)[MAXN]) {
-	int i, j, k = 0;
-	for (i = 1; i <= ALen; i++) {
-		lg2K[i] = k - 1;
-		if ((1 << k) == i) k++;
-	}
-	for (i = 0; i < MAXM; i++) {
-		for (j = 1; j + (1<<i) - 1 <= ALen; j++) {
-			if (i == 0) {
-				f[i][j] = j;
-			}
-			else {
-				f[i][j] = RMQ_MinIndex(A, f[i-1][j], f[i-1][j + (1 << (i - 1))]);
-			}
-		}
-	}
+    int i, j, k = 0;
+    for (i = 1; i <= ALen; i++) {
+        lg2K[i] = k - 1;
+        if ((1 << k) == i) k++;
+    }
+    for (i = 0; i < MAXM; i++) {
+        for (j = 1; j + (1 << i) - 1 <= ALen; j++) {
+            if (i == 0) {
+                f[i][j] = j;
+            }
+            else {
+                f[i][j] = RMQ_MinIndex(A, f[i - 1][j], f[i - 1][j + (1 << (i - 1))]);
+            }
+        }
+    }
 }
 
 /*
