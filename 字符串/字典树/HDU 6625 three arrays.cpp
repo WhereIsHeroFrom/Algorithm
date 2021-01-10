@@ -1,3 +1,15 @@
+/*
+    两个字典树贪心匹配：
+
+    1. 0 - 0
+    2. 1 - 1
+    3. 0 - 1
+    4. 1 - 0
+
+    3 TLE
+    1 WA
+*/
+
 #include <iostream>
 #include <cstring>
 #include <string>
@@ -6,10 +18,9 @@
 using namespace std;
 
 typedef int TrieData;
-typedef long long AnsType;                   // 修改点 1
-typedef long long ValueType;                 // 修改点 2
-
-const int MAXBIT = 64;                       // 修改点 3
+typedef int AnsType;                         // 修改点 1
+typedef int ValueType;                       // 修改点 2
+const int MAXBIT = 30;                       // 修改点 3
 const int NODECACHES = MAXBIT * 100010;      // 修改点 4
 const int TREENODE = 2;                      // 修改点 5
 const int TRIEHASH_BASE = 0;                 // 修改点 6
@@ -37,9 +48,9 @@ public:
     }
     inline bool hasSon(int sonIdx) {
         // 结点范围判断
-        if (sonIdx < 0 || sonIdx >= TREENODE) {
-            return false;
-        }
+        /*if (sonIdx < 0 || sonIdx >= TREENODE) {
+        return false;
+        }*/
         return nodes_[sonIdx] != TRIENODE_NULL;
     }
     inline void reset() {
@@ -89,12 +100,9 @@ public:
     virtual TrieData query_value(ValueType v);
     // 查询字典树中和给定数值 XOR 后最大的那个数
     virtual void query_xor_max(ValueType v, AnsType &ans);
-private:
-    int genNode() {
-        TrieNode *pkNode = &(nodes_[nodeId_]);
-        pkNode->reset();
-        return nodeId_++;
-    }
+
+    AnsType jik();
+    AnsType ijk();
 
     bool hasSon(TrieNode *pkNow, int sonIdx) {
         if (pkNow->hasSon(sonIdx)) {
@@ -105,11 +113,27 @@ private:
         }
         return false;
     }
+private:
+    int genNode() {
+        TrieNode *pkNode = &(nodes_[nodeId_]);
+        pkNode->reset();
+        return nodeId_++;
+    }
+
+
 
     void addSon(TrieNode *pkNow, int sonIdx) {
         if (!pkNow->hasSon(sonIdx)) {
             pkNow->setSon(sonIdx, genNode());
         }
+    }
+
+    int sonCount(TrieNode *pkNow, int sonIdx) {
+        if (!hasSon(pkNow, sonIdx)) {
+            return 0;
+        }
+        TrieNode *pkSon = node(pkNow->getSon(sonIdx));
+        return pkSon->getData();
     }
 private:
     int nodeId_;
@@ -182,42 +206,83 @@ void TrieTree::query_xor_max(ValueType v, AnsType &ans) {
     }
 }
 
-int main() {
-    TrieTree tt(NODECACHES);
+int n, a[100010], b[100010];
+TrieTree L(NODECACHES), R(NODECACHES);
 
-    int t, cas = 0;
-    int i;
-    int n, m;
-    ValueType v;
-    scanf("%d", &t);
-    while (t--) {
-        scanf("%d %d", &n, &m);
-        tt.initialize();
-        for (i = 0; i < n; ++i) {
-            scanf("%lld", &v);
-            tt.insert_value(v);
+void get_value(TrieNode *pkLeftNode, TrieNode *pkRightNode, AnsType& LValue, AnsType& minValue, AnsType LAns, AnsType ans, int depth) {
+    if (ans >= minValue) {
+        return;
+    }
+    if (depth == -1) {
+        if (ans < minValue) {
+            minValue = ans;
+            LValue = LAns;
         }
-        printf("Case #%d:\n", ++cas);
-        while (m--) {
-            scanf("%lld", &v);
-            ValueType ans;
-            tt.query_xor_max(v, ans);
-            printf("%lld\n", (ans ^ v));
+        return;
+    }
+    bool bLHas[2] = { L.hasSon(pkLeftNode, 0), L.hasSon(pkLeftNode, 1) };
+    bool bRHas[2] = { R.hasSon(pkRightNode, 0), R.hasSon(pkRightNode, 1) };
+
+    bool bFind = false;
+    for (int i = 0; i < 2; ++i) {
+        if (bLHas[i] && bRHas[i]) {
+            bFind = true;
+            get_value(L.node(pkLeftNode->getSon(i)), R.node(pkRightNode->getSon(i)), LValue, minValue, (LAns | (1 << depth)*i), ans, depth - 1);
+            return;
         }
     }
 
-    return 0;
+    if (!bFind) {
+        for (int i = 0; i < 2; ++i) {
+            if (bLHas[i] && bRHas[1 - i]) {
+                get_value(L.node(pkLeftNode->getSon(i)), R.node(pkRightNode->getSon(1 - i)), LValue, minValue, (LAns | (1 << depth)*i), (ans | (1 << depth)), depth - 1);
+                return;
+            }
+        }
+    }
 }
 
-/*
-100
-6 100
-4294967295 4294967294 4294967293 4294967292 4294967291 4294967290
+int c[100010], csize;
 
-4294967295 4294967294 4294967293 4294967292 4294967291 4294967290
+int main() {
+    int t;
+    int i;
+    scanf("%d", &t);
 
-100
-6 10
-7 6 4 3 1 0
-9 8 7 6 5 4 3 2 1 0
-*/
+    while (t--) {
+        scanf("%d", &n);
+        L.initialize();
+        R.initialize();
+        for (i = 0; i < n; ++i) {
+            scanf("%d", &a[i]);
+            //a[i] = rand() * rand();
+            L.insert_value(a[i]);
+        }
+        for (i = 0; i < n; ++i) {
+            scanf("%d", &b[i]);
+            //b[i] = rand() * rand();
+            R.insert_value(b[i]);
+        }
+
+        int cnt = n;
+        csize = 0;
+
+        while (cnt--) {
+            AnsType ans = INT_MAX;
+            AnsType lans;
+            get_value(L.root(), R.root(), lans, ans, 0, 0, MAXBIT - 1);
+            c[csize++] = ans;
+
+            L.delete_value(lans);
+            R.delete_value(ans ^ lans);
+
+        }
+        sort(c, c + csize);
+        for (i = 0; i < csize; ++i) {
+            if (i) printf(" ");
+            printf("%d", c[i]);
+        }
+        puts("");
+    }
+    return 0;
+}

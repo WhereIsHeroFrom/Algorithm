@@ -6,10 +6,9 @@
 using namespace std;
 
 typedef int TrieData;
-typedef long long AnsType;                   // 修改点 1
-typedef long long ValueType;                 // 修改点 2
-
-const int MAXBIT = 64;                       // 修改点 3
+typedef int AnsType;                         // 修改点 1
+typedef int ValueType;                       // 修改点 2
+const int MAXBIT = 32;                       // 修改点 3
 const int NODECACHES = MAXBIT * 100010;      // 修改点 4
 const int TREENODE = 2;                      // 修改点 5
 const int TRIEHASH_BASE = 0;                 // 修改点 6
@@ -182,42 +181,94 @@ void TrieTree::query_xor_max(ValueType v, AnsType &ans) {
     }
 }
 
-int main() {
-    TrieTree tt(NODECACHES);
 
-    int t, cas = 0;
-    int i;
-    int n, m;
-    ValueType v;
-    scanf("%d", &t);
-    while (t--) {
-        scanf("%d %d", &n, &m);
+#define MAXN 100100
+
+struct Edge {
+    int v, w;
+    int next;
+    Edge() {
+    }
+    Edge(int tv, int tw, int nex) : v(tv), w(tw), next(nex) {
+
+    }
+}E[200010];
+int edgeCount;
+
+int vans[MAXN];
+int fat[MAXN], head[MAXN];
+
+TrieTree tt(NODECACHES);
+
+void addEdge(int u, int v, int w) {
+    E[edgeCount++] = Edge(v, w, head[u]);
+    head[u] = edgeCount - 1;
+}
+
+void dfs(int u, int sum) {
+
+    tt.insert_value(sum);
+    vans[u] = sum;
+    //printf("%d -> %d\n", u, sum);
+
+    for (int eIdx = head[u]; eIdx != -1; eIdx = E[eIdx].next) {
+        Edge &e = E[eIdx];
+        if (fat[u] != e.v) {
+            fat[e.v] = u;
+            dfs(e.v, (e.w ^ sum));
+            // printf("%d -> %d\n", u, e.v );
+        }
+    }
+
+}
+
+int main() {
+    int n;
+
+
+    while (scanf("%d", &n) != EOF) {
+        for (int i = 0; i < n; ++i) {
+            head[i] = -1;
+            fat[i] = -1;
+        }
+        edgeCount = 0;
+
+        for (int i = 0; i < n - 1; ++i) {
+            int u, v, w;
+            scanf("%d %d %d", &u, &v, &w);
+            addEdge(u, v, w);
+            addEdge(v, u, w);
+        }
+
         tt.initialize();
-        for (i = 0; i < n; ++i) {
-            scanf("%lld", &v);
-            tt.insert_value(v);
+
+        dfs(0, 0);
+
+        unsigned int Max = 0;
+        for (int i = 0; i < n; ++i) {
+            int ans = 0;
+            tt.query_xor_max(vans[i], ans);
+            //printf("%d %d\n", vans[i], ans);
+
+            if (ans > Max) Max = ans;
         }
-        printf("Case #%d:\n", ++cas);
-        while (m--) {
-            scanf("%lld", &v);
-            ValueType ans;
-            tt.query_xor_max(v, ans);
-            printf("%lld\n", (ans ^ v));
-        }
+
+        printf("%u\n", Max);
     }
 
     return 0;
 }
 
 /*
-100
-6 100
-4294967295 4294967294 4294967293 4294967292 4294967291 4294967290
-
-4294967295 4294967294 4294967293 4294967292 4294967291 4294967290
-
-100
-6 10
-7 6 4 3 1 0
-9 8 7 6 5 4 3 2 1 0
+11
+1 0 1
+5 1 8
+10 4 4
+4 1 2
+2 0 2
+3 2 3
+3 9 2
+0 7 3
+6 7 9
+7 8 6
 */
