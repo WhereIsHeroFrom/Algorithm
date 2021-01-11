@@ -3,6 +3,17 @@
     2 TLE    作为索引的数组开小了，数组下标越界导致 超时
 */
 
+/*
+    模板需要修改的地方：
+        1、TrieData 作为字典树的权值，是有特殊用途的，比如作为下标，索引到某个其他数据，或者直接是一个权值用于计算；
+        2、ValueType 用作标识字符串类型，可能是 字符类型char， 也可能是整型 int，或者 long long 等等；
+        3、TRIE_WORD_COUNT 代表字符串集合数量；
+        4、TRIE_WORD_LENGTH 代表单个字符串最大长度；
+        5、TRIE_DATA_INIT 用于对 TrieData 赋初始值；
+        6、trieNodeValueHash 通过这个哈希函数实现 字符 到 下标 的映射；
+*/
+
+
 #include <iostream>
 #include <cstring>
 #include <string>
@@ -12,65 +23,70 @@ using namespace std;
 
 typedef int TrieData;                        // 修改点 1
 typedef const char ValueType;                // 修改点 2
+const int TRIE_WORD_COUNT = 400000;          // 修改点 3
+const int TRIE_WORD_LENGTH = 10;             // 修改点 4
+const int TRIE_NODE_COUNT = 26;              // 修改点 5
 
-const int NODECACHES = 4000000;              // 修改点 3
-const int TREENODE = 26;                     // 修改点 4
-const int TRIEHASH_BASE = 'a';               // 修改点 5
-const TrieData TRIEDATA_INIT = -1;           // 修改点 6
-const int TRIENODE_NULL = -1;
+const TrieData TRIE_DATA_INIT = -1;
+const int TRIE_NODE_NULL = -1;
+const int TRIE_NODE_CACHES = TRIE_WORD_COUNT * TRIE_WORD_LENGTH;
+
+
+int trieNodeValueHash(ValueType v) {         // 修改点 6
+    return v - 'a';
+}
 
 // 字典树结点类
 class TrieNode {
 private:
-    TrieData data_;
-    // 注意这里存的是结点内存池的下标，相比存指针的好处是：字节数少一半
-    int nodes_[TREENODE];
+    bool isword_;                 // 是否是1个完整单词
+    int num_;                     // 有多少个单次经过这个结点
+    TrieData td_;                 // 每个结点的权值，用来作一些特殊用途
+    int nodes_[TRIE_NODE_COUNT];  // 注意这里存的是结点内存池的下标，相比存指针的好处是：字节数少一半
 
 public:
-    // 模板中不变的接口
-    inline void setSon(int sonIdx, int son) {
-        nodes_[sonIdx] = son;
+    inline void setNode(int nodeIdx, int node) {
+        nodes_[nodeIdx] = node;
     }
-    inline int getSon(int sonIdx) {
-        return nodes_[sonIdx];
+    inline int getNode(int nodeIdx) {
+        return nodes_[nodeIdx];
     }
-    inline bool hasSon(int sonIdx) {
+    inline bool hasNode(int nodeIdx) {
         // 结点范围判断
-        if (sonIdx < 0 || sonIdx >= TREENODE) {
+        if (nodeIdx < 0 || nodeIdx >= TRIE_NODE_COUNT) {
             return false;
         }
-        return nodes_[sonIdx] != TRIENODE_NULL;
+        return nodes_[nodeIdx] != TRIE_NODE_NULL;
     }
     inline void reset() {
         resetData();
-        memset(nodes_, TRIENODE_NULL, sizeof(nodes_));
+        memset(nodes_, TRIE_NODE_NULL, sizeof(nodes_));
+    }
+    inline void resetData(){
+        num_ = 0;
+        isword_ = false;
+        td_ = TRIE_DATA_INIT;
+    }
+    inline void addNum(int d) {
+        num_ += d;
+    }
+    inline int  getNum() {
+        return num_;
+    }
+    inline void setTrieData(TrieData v){
+        if (v != TRIE_DATA_INIT)
+            td_ = v;
+    }
+    inline TrieData  getTrieData() {
+        return td_;
+    }
+    inline void setWord(bool isw) {
+        isword_ = isw;
+    }
+    inline bool isWord(){
+        return isword_;
     }
 
-public:
-    // 模板中根据不同的题型进行稍适修改        // 修改点 7
-    void resetData();
-    void updateData(TrieData& d);
-    TrieData getData();
-};
-
-void TrieNode::resetData() {
-    data_ = TRIEDATA_INIT;
-}
-
-
-void TrieNode::updateData(TrieData& d) {
-    if (data_ == TRIEDATA_INIT) {
-        data_ = d;
-    }
-}
-
-TrieData TrieNode::getData() {
-    return data_;
-}
-
-enum TrieNodeInsertType {
-    TNTT_INSIDE = 0,
-    TNTT_LEAF = 1,
 };
 
 // 字典树类
@@ -83,24 +99,40 @@ public:
         root_ = genNode();
     }
 
+    TrieNode *root() const { return node(root_); }
+    TrieNode *node(int idx) const { return &(nodes_[idx]); }
 
 public:
-    virtual void insert(int vSize, ValueType v[], TrieData data, TrieNodeInsertType tntt);
-    virtual TrieData query(int vSize, ValueType v[]);                     // 修改点 8
+    void insert_word(int vSize, ValueType v[], TrieData data);
+    bool query_word(int vSize, ValueType v[]);                // 询问是否存在单词 v
+    int query_prefix_num(int vSize, ValueType v[]);           // 询问以 v 为首的前缀数量
+    TrieData query_triedata(int vSize, ValueType v[]);        // 询问单词 v 的权值
 
+    virtual void delete_prefex(int vSize, ValueType v[]);
+    virtual void query_prefix(int vSize, ValueType v[], char *ans);
 private:
     int genNode() {
         TrieNode *pkNode = &(nodes_[nodeId_]);
         pkNode->reset();
         return nodeId_++;
     }
-    TrieNode *Node(int idx) {
-        return &(nodes_[idx]);
+
+    bool hasNode(TrieNode *pkNow, int nodeIdx) {
+        if (pkNow->hasNode(nodeIdx)) {
+            TrieNode *pkNode = node(pkNow->getNode(nodeIdx));
+            if (pkNode->getNum() > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    int getSonIndex(ValueType v) {
-        return v - TRIEHASH_BASE;
+    void checkNode(TrieNode *pkNow, int nodeIdx) {
+        if (!pkNow->hasNode(nodeIdx)) {
+            pkNow->setNode(nodeIdx, genNode());
+        }
     }
+
 private:
     int nodeId_;
     int root_;
@@ -117,40 +149,93 @@ TrieTree::~TrieTree() {
     }
 }
 
-void TrieTree::insert(int vSize, ValueType v[], TrieData data, TrieNodeInsertType tntt) {
-    TrieNode *pkNow = Node(root_);
+void TrieTree::insert_word(int vSize, ValueType v[], TrieData data) {
+    // 插入字符串到字典树
+    TrieNode *pkNow = root();
     for (int i = 0; i < vSize; ++i) {
-        // 1. 查找对应字母所在的子结点是否存在，没有则创建
-        int sonIdx = getSonIndex(v[i]);
-        if (!pkNow->hasSon(sonIdx)) {
-            pkNow->setSon(sonIdx, genNode());
-        }
-        // 2. 进入子结点
-        pkNow = Node(pkNow->getSon(sonIdx));
-
-        // 3. 如果是内部插入类型，则更新标记
-        if (tntt == TrieNodeInsertType::TNTT_INSIDE) {
-            pkNow->updateData(data);
-        }
+        int nodeIdx = trieNodeValueHash(v[i]);
+        checkNode(pkNow, nodeIdx);
+        pkNow = node(pkNow->getNode(nodeIdx));
+        pkNow->addNum(1);
     }
-    // 4. 如果是叶子插入类型，则更新标记
-    if (tntt == TrieNodeInsertType::TNTT_LEAF) {
-        pkNow->updateData(data);
-    }
-
+    pkNow->setWord(true);
+    pkNow->setTrieData(data);
 }
 
-TrieData TrieTree::query(int vSize, ValueType v[]) {
-    TrieNode *pkNow = Node(root_);
+bool TrieTree::query_word(int vSize, ValueType v[]) {
+    // 查找对应字典中，是否有字符串等于 v[]
+    TrieNode *pkNow = root();
     for (int i = 0; i < vSize; ++i) {
-        int sonIdx = getSonIndex(v[i]);
-        if (!pkNow->hasSon(sonIdx)) {
-            return TRIEDATA_INIT;
+        int nodeIdx = trieNodeValueHash(v[i]);
+        if (!hasNode(pkNow, nodeIdx)) {
+            return false;
         }
-        pkNow = Node(pkNow->getSon(sonIdx));
+        pkNow = node(pkNow->getNode(nodeIdx));
     }
-    return pkNow->getData();
+    return pkNow->isWord();
 }
+
+int TrieTree::query_prefix_num(int vSize, ValueType v[]) {
+    // 查找对应字典中，是否有字符串等于 v[]
+    TrieNode *pkNow = root();
+    for (int i = 0; i < vSize; ++i) {
+        int nodeIdx = trieNodeValueHash(v[i]);
+        if (!hasNode(pkNow, nodeIdx)) {
+            return 0;
+        }
+        pkNow = node(pkNow->getNode(nodeIdx));
+    }
+    return pkNow->getNum();
+}
+
+TrieData TrieTree::query_triedata(int vSize, ValueType v[]) {
+    TrieNode *pkNow = root();
+    for (int i = 0; i < vSize; ++i) {
+        int nodeIdx = trieNodeValueHash(v[i]);
+        if (!hasNode(pkNow, nodeIdx)) {
+            return TRIE_DATA_INIT;
+        }
+        pkNow = node(pkNow->getNode(nodeIdx));
+    }
+    return pkNow->getTrieData();
+}
+
+void TrieTree::delete_prefex(int vSize, ValueType v[]) {
+    int cnt = query_prefix_num(vSize, v);
+    if (cnt == 0) {
+        // 先询问一次，有没有这个前缀，没有就不用删除
+        return;
+    }
+    // 删除对应前缀的所有字符串
+    TrieNode *pkNow = root();
+    for (int i = 0; i < vSize; ++i) {
+        int nodeIdx = trieNodeValueHash(v[i]);
+        // 引用计数机制来进行结点删除
+        TrieNode *pkSon = node(pkNow->getNode(nodeIdx));
+        pkSon->addNum(-cnt);
+        pkNow = pkSon;
+    }
+}
+
+void TrieTree::query_prefix(int vSize, ValueType v[], char *ans) {
+    // 查找对应字典中，最短能够表示 v[] 的字符串存储在 ans 中
+    TrieNode *pkNow = root();
+    for (int i = 0; i < vSize; ++i) {
+        int nodeIdx = trieNodeValueHash(v[i]);
+        if (hasNode(pkNow, nodeIdx)) {
+            return;
+        }
+        pkNow = node(pkNow->getNode(nodeIdx));
+        ans[i] = v[i];
+        if (pkNow->getNum() == 1) {
+            ans[i + 1] = '\0';
+            return;
+        }
+    }
+    ans[vSize] = '\0';
+}
+
+
 
 char from[3032], to[3002];
 char lines[3010], trans[3010];
@@ -163,8 +248,8 @@ void processTrans(TrieTree &tt) {
     trans[transSize] = '\0';
     if (transSize > 0) {
         int len = strlen(trans);
-        TrieData idx = tt.query(len, trans);
-        if (idx != TRIEDATA_INIT) {
+        TrieData idx = tt.query_triedata(len, trans);
+        if (idx != TRIE_DATA_INIT) {
             strcpy(trans, words[idx]);
         }
         printf("%s", trans);
@@ -173,7 +258,7 @@ void processTrans(TrieTree &tt) {
 }
 
 int main() {
-    TrieTree tt(NODECACHES);
+    TrieTree tt(TRIE_NODE_CACHES);
     tt.initialize();
 
     scanf("%s", from);
@@ -181,7 +266,7 @@ int main() {
         if (strcmp(to, "END") == 0) break;
         scanf("%s", from);
         strcpy(words[wordSize], to);
-        tt.insert(strlen(from), from, wordSize++, TrieNodeInsertType::TNTT_LEAF);
+        tt.insert_word(strlen(from), from, wordSize++);
     }
     scanf("%s", from);
     getchar();
