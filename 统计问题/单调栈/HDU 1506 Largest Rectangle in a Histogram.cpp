@@ -73,7 +73,7 @@ ll LargestRectangleInHistogram(int size, int *h, Stack& st) {
     ll maxRet = 0;
     h[size++] = -1;
     for (int i = 0; i < size; ++i) {
-        if (st.empty() || h[st.top()] <= h[i]) {
+        if (st.empty() || h[st.top()] < h[i]) {
             // 维护一个从栈底到栈顶的单调递增栈
             st.push(i);
         }

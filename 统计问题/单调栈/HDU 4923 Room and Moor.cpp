@@ -87,6 +87,35 @@ Stack st;
 
 double sqr(double x) { return x*x; }
 
+// 这个是最快的
+char line[1000010];
+
+void get() {
+    int idx = 0, t = 0, s = 0, has = false;
+    getchar();
+    gets(line);
+
+    while (line[idx]) {
+        if (line[idx] >= '0' && line[idx] <= '9') {
+            has = true;
+            s = line[idx] - '0';
+        }
+        else {
+            if (has) {
+                A[t++] = s;
+                s = 0;
+                has = false;
+            }
+
+        }
+        ++idx;
+    }
+    if (has) {
+        A[t++] = s;
+    }
+}
+
+
 int main() {
     int t;
     int n;
@@ -96,10 +125,7 @@ int main() {
         st.clear();
 
         scanf("%d", &n);
-        for (int i = 0; i < n; ++i) {
-            scanf("%d", &A[i]);
-            //A[i] = i < n / 2 ? 1 : 0;
-        }
+        get();
 
         ZeroOne p;
         int i = 0;
