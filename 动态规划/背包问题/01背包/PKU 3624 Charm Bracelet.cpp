@@ -47,6 +47,11 @@ void zeroOneKnapsack(int knapsackSize, Knapsack *knap, int maxCapacity) {
 		for(int j = maxCapacity; j >= knap[i].capacity; --j) {
 			dp[j] = opt(dp[j], dp[j - knap[i].capacity] + knap[i].weight);
 		}
+		
+		for(int j = 0; j <= maxCapacity; ++j) {
+			printf("%d ", dp[j]);
+		} 
+		puts("");
 	}
 }
 
@@ -73,6 +78,15 @@ int main() {
 	
 	return 0; 
 } 
+
+/*
+4 7
+2 2
+4 3
+1 1
+2 5
+
+*/
 
 
 
