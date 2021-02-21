@@ -67,6 +67,7 @@ bool fit(int a, int b, int c, int d) {
 }
 
 int main() {
+
 	int t;
 	scanf("%d", &t);
 
