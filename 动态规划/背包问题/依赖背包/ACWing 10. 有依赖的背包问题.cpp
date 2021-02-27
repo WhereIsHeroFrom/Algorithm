@@ -34,28 +34,25 @@ vector <int> edges[MAXN];
 
 void treeGroupKnapsack(int father, int u, int m) {
     int i, j, k;
-    int maxCapacity = m - Knap[u].capacity;
-    for (i = 0; i <= maxCapacity; ++i)              // 1、分组背包容量初始化
-        dp[u][i] = init;
-    for (i = 0; i < edges[u].size(); ++i) {         // 2、分组背包枚举组（1个子树1个组）
-        int v = edges[u][i];
-        if (v == father) continue;
-        treeGroupKnapsack(u, v, maxCapacity);       // 3、递归求解子结点所有组的状态 dp[v][0 ... capacity]
-        for (j = maxCapacity; j >= 0; --j) {        // 4、分组背包逆序枚举容量
-            for (k = 0; k <= j; ++k) {               
-                                                    // 5、(容量为k, 价值为dp[v][k]) 的物品进行决策
-                                                    // 注意一定要考虑容量为 0 的情况，这种情况也是能够满足状态转移的
-                dp[u][j] = opt(
-                    dp[u][j], 
-                    dp[u][j - k] + dp[v][k]
-                );
+    int maxCapacity = m - Knap[u].capacity;            // 1、需要计算的最大容量
+    for (i = 0; i <= maxCapacity; ++i)                 // 2、分组背包容量初始化
+        dp[u][i] = 0;
+    for (int idx = 0; idx < edges[u].size(); ++idx) {  // 3、分组背包枚举组（1个子树1个组）
+        int v = edges[u][idx];
+        if (v == father) continue;                     // 4、无向树的处理
+        treeGroupKnapsack(u, v, maxCapacity);          // 5、递归求解子结点所有组的状态 dp[v][0 ... capacity]
+        for (i = maxCapacity; i >= 0; --i) {           // 6、分组背包逆序枚举容量
+            for (j = 0; j <= i; ++j) {                 // 7、(容量为k, 价值为dp[v][k]) 的物品进行决策
+                dp[u][i] = opt(
+                    dp[u][i],
+                    dp[u][i - j] + dp[v][j]);
             }
         }
     }
-    for (i = m; i >= Knap[u].capacity; --i)         // 6、父结点必选
+    for (i = m; i >= Knap[u].capacity; --i)            // 8、父结点必选
         dp[u][i] = dp[u][i - Knap[u].capacity] + Knap[u].weight;
-    for (i = 0; i < Knap[u].capacity; ++i) 
-        dp[u][i] = init;
+    for (i = 0; i < Knap[u].capacity; ++i)
+        dp[u][i] = 0;
 }
 
 //************************************ 树上分组背包 模板 ************************************
@@ -77,9 +74,7 @@ int main() {
                 edges[fat].push_back(i);
             }
         }
-
         treeGroupKnapsack(0, root, m);
-
         printf("%d\n", dp[root][m]);
     }
 
