@@ -1,95 +1,92 @@
-/*
-	 题意：裸 01 背包
-	 
-*/ 
-
 #include <iostream>
-#include <cstring>
 #include <algorithm>
+#include <functional>
+
 using namespace std;
 
+//************************************ K 大 01背包 模板 ************************************
+const int MAXN = 110;             // 物品数量 
+const int MAXC = 1010;            // 背包容量
+const int MAXK = 31;              // 第 K 大
+typedef int ValueType;            // 背包价值的类型 
+const ValueType inf = -1e9;       // 求最大值则最小，求最小值则最大 
+const ValueType init = 0;         // 一般无论求最大值还是最小值，都固定为 0 
 
-//************************************ 01背包 模板 ************************************
-const int MAXN = 110;       // 物品数量 
-const int MAXC = 1010;      // 背包容量 
-const int inf = -100000000; // dp数组的非法值 
-const int init = 0;         // dp数组的初始值 
-typedef int ValueType;
-
-ValueType dp[MAXN][MAXC];
+ValueType dp[MAXC][MAXK];
 
 struct Knapsack {
-	int capacity;
-	ValueType weight;
-public:
-	Knapsack(){} 
-	Knapsack(int c, ValueType w) : capacity(c), weight(w) {}
+    int capacity;
+    ValueType weight;
+    Knapsack(){
+    }
+    Knapsack(int c, ValueType w) : capacity(c), weight(w) {
+    }
 }Knap[MAXN];
 
-ValueType opt(ValueType x, ValueType y) {
-	return x > y ? x : y;
+void opt(int K, ValueType* x, ValueType* y, ValueType *res) {
+    ValueType totala[MAXK << 1];
+    int s = 0;
+    for (int i = 0; i < K; ++i) {
+        totala[s++] = x[i];
+        totala[s++] = y[i];
+    }
+
+    sort(totala, totala + s, greater<int>());
+    int residx = 0;
+    for (int i = 0; i < s; ++i) {
+        if (residx == 0 || totala[i] != res[residx - 1])
+            res[residx++] = totala[i];
+        if (residx == K) return;
+    }
 }
 
-void zeroOneKnapsackInit(int maxCapacity) {
-	for(int i = 0; i <= maxCapacity; ++i) {
-		dp[0][i] = (i==0) ? init : inf;
-	}
+void zeroOneKthKnapsackInit(int maxCapacity) {
+    for (int i = 0; i <= maxCapacity; ++i) {
+        for (int j = 0; j < MAXK; ++j)
+            dp[i][j] = (!i && !j) ? init : inf;
+    }
 }
 
-void zeroOneKnapsack(int knapsackSize, Knapsack *knap, int maxCapacity) {
-	zeroOneKnapsackInit(maxCapacity);
-	for(int i = 1; i <= knapsackSize; ++i) {
-		for(int j = 0; j <= maxCapacity; ++j) {
-			if( j >= knap[i].capacity )
-				dp[i][j] = opt(dp[i-1][j], dp[i-1][j - knap[i].capacity] + knap[i].weight);
-			else
-				dp[i][j] = dp[i-1][j];
-		}
-	}
+// dp[i][j][0...k] = maxk{ dp[i-1][j][0...k], dp[i-1][j - c[i]][0...k] + w[i] }
+void zeroOneKthKnapsack(int knapsackSize, int K, Knapsack *knap, int maxCapacity) {
+    zeroOneKthKnapsackInit(maxCapacity);
+    for (int i = 0; i < knapsackSize; ++i) {
+        for (int j = maxCapacity; j >= knap[i].capacity; --j) {
+            ValueType o[MAXK];
+            for (int k = 0; k < K; ++k) {
+                o[k] = dp[j - knap[i].capacity][k] + knap[i].weight;
+            }
+            opt(K, dp[j], o, dp[j]);
+        }
+    }
 }
 
-//************************************ 01背包 模板 ************************************
+//************************************ K 大 01背包 模板 ************************************
 
-int ans[MAXC], ansSize;
 
 int main() {
-	int n, v, i;
-	int t, K;
-	scanf("%d", &t);
-	while( t-- ) {
-		scanf("%d %d %d", &n, &v, &K);
-		int tot = 0;
-		for(i = 1; i <= n; ++i) {
-			int w;
-			scanf("%d", &w);
-			Knap[i].weight = w;
-		}
-		for(i = 1; i <= n; ++i) {
-			int c;
-			scanf("%d", &c);
-			Knap[i].capacity = c;
-		}
-		
-		zeroOneKnapsack(n, Knap, v);
-		int ansSize = 0;
-		for(i = 0; i <= v; ++i) {
-			if( dp[n][i] > 0) {
-				ans[ ansSize++ ] = dp[n][i];
-			}
- 		}
- 		sort(ans, ans + ansSize);
- 		int val = 0;
- 		for(i = ansSize-1; i >= 0; --i) {
- 			if(i == ansSize-1 || ans[i] != ans[i+1]) {
- 				K--;
-			 }
-			 if(K == 0) {
-			 	val = ans[i];
-			 	break;
-			 }
-		 }
- 		
-		printf("%d\n", val);
-	}	
-	return 0;
+    int t;
+    int n, v, k;
+    int i;
+    scanf("%d", &t);
+
+    while (t--) {
+        scanf("%d %d %d", &n, &v, &k);
+        for (i = 0; i < n; ++i) {
+            scanf("%d", &Knap[i].weight);
+        }
+        for (i = 0; i < n; ++i) {
+            scanf("%d", &Knap[i].capacity);
+        }
+        zeroOneKthKnapsack(n, k, Knap, v);
+        int ans[MAXK];
+        for (i = 0; i < k; ++i) ans[i] = inf;
+        for (i = 0; i <= v; ++i) {
+            opt(k, ans, dp[i], ans);
+        }
+        if (ans[k - 1] < 0) ans[k - 1] = 0;
+        printf("%d\n", ans[k - 1]);
+    }
+
+    return 0;
 }

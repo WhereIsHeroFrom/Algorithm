@@ -75,18 +75,23 @@ int groupKnapsackRegroup(int knapsackSize, Knapsack *knap) {
     return ++groupId;
 }
 
-void groupKnapsack(int knapsackSize, Knapsack *knap, int maxCapacity) {
-    groupKnapsackInit(maxCapacity);
-    int groupSize = groupKnapsackRegroup(knapsackSize, knap);
-    for (int i = 0; i < groupSize; ++i) {
-        for (int j = maxCapacity; j >= 0; --j) {
-            for (int k = 0, s = GKnap[i].size(); k < s; ++k) {
-                const Knapsack &item = GKnap[i].get(k);
-                if (j >= item.capacity)
-                    dp[j] = opt(dp[j], dp[j - item.capacity] + item.weight);
+int groupKnapsack(int knapsackSize, Knapsack *knap, int m) {
+    groupKnapsackInit(m);
+    int t = groupKnapsackRegroup(knapsackSize, knap);
+    for (int k = 1; k <= t; ++k) {
+        for (int j = m; j >= 0; --j) {
+            for (int i = 0; i < GKnap[k - 1].size(); ++i) {
+                const Knapsack &item = GKnap[k - 1].get(i);
+                if (j >= item.capacity) {
+                    dp[j] = opt(
+                        dp[j],
+                        dp[j - item.capacity] + item.weight
+                    );
+                }
             }
         }
     }
+    return t;
 }
 
 //************************************ 分组背包 模板 ************************************
