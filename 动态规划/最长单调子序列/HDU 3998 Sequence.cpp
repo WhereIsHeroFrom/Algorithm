@@ -86,21 +86,18 @@ void findLIS(LISType lt, ValueType *a, int asize) {
 
 
 ValueType a[maxn];
+int has[maxn];
 
 int main() {
-    int a = 0;
-    int b = 10 / a;
-
     int n, x;
     // n = 500
     while (scanf("%d", &n) != EOF) {
         for (int i = 1; i <= n; ++i) {
             scanf("%d", &a[i]);
         }
-        memset(dp, -1, sizeof(dp));
         memset(has, 0, sizeof(has));
 
-        ll ans = 0;
+        int ans = 0;
         int len = -1;
         findLIS(LIST_STRICTLY, a, n);
         len = gsize;
