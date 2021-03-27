@@ -5,7 +5,7 @@
 
 using namespace std;
 
-const int maxn = 2010;
+const int maxn = 1010;
 #define ll long long
 int n;
 int f[maxn][maxn];
@@ -53,10 +53,12 @@ bool solve() {
 
 int main() {
     int t, cas = 0;
-
-    while (scanf("%s %s %s", a + 1, b + 1, c + 1) != EOF) {
+    scanf("%d", &t);
+    while (t--) {
         init();
-        printf("%s\n", solve() ? "Yes" : "No");
+        scanf("%s %s %s", a + 1, b + 1, c + 1);
+        printf("Data set %d: %s\n", ++cas, solve() ? "yes" : "no");
+
     }
     return 0;
 }
