@@ -5,16 +5,39 @@ using namespace std;
 
 #define LL __int64
 #define MAXN 310
+const int inf = -1;
 
 int n;
-int key[MAXN], val[MAXN];
+int key[MAXN], v[MAXN];
 bool fit[MAXN][MAXN];
-bool canearse[MAXN][MAXN];
 LL dp[MAXN][MAXN];
 LL sum[MAXN][MAXN];
 
 int gcd(int a, int b) {
 	return b == 0 ? a : gcd(b, a % b);
+}
+
+LL dfs(int l, int r) {
+	if(l > r) {
+		return 0;
+	}
+	if(l == r) {
+		return 0;
+	}
+	LL &val = dp[l][r];
+	if(val != inf) {
+		return val;
+	}
+	val = 0;
+	for(int k = l; k <= r; ++k) {
+		val = max(val, dfs(l, k) + dfs(k+1, r) );
+	}
+	if(fit[l][r]) {
+		if( dfs(l+1, r-1) == sum[l+1][r-1] ) {
+			val = max(val, sum[l+1][r-1] + v[l] + v[r] );
+		}
+	}
+	return val;
 }
 
 int main() {
@@ -24,8 +47,7 @@ int main() {
 	scanf("%d", &t);
 
 	while (t--) {
-		memset(dp, 0, sizeof(dp));
-		memset(canearse, 0, sizeof(canearse));
+		memset(dp, inf, sizeof(dp));
 		memset(fit, 0, sizeof(fit));
 		memset(sum, 0, sizeof(sum));
 
@@ -35,60 +57,21 @@ int main() {
 			scanf("%d", &key[i]);
 		}
 		for (i = 1; i <= n; ++i) {
-			scanf("%d", &val[i]);
+			scanf("%d", &v[i]);
 		}
 
 		for (i = 1; i <= n; ++i) {
 			fit[i][i] = 0;
-			sum[i][i] = val[i];
+			sum[i][i] = v[i];
 			for (j = i + 1; j <= n; ++j) {
 				fit[i][j] = gcd(key[i], key[j]) > 1;
-				sum[i][j] = sum[i][j - 1] + val[j];
+				sum[i][j] = sum[i][j - 1] + v[j];
 			}
 		}
+		
+		LL ans = dfs(1, n);
 
-		// Ã¶¾Ù³¤¶È
-		for (i = 2; i <= n; i += 2) {
-			for (int l = 1; l <= n; ++l) {
-				int r = l + i - 1;
-				if (fit[l][r]) {
-					if (l + 1 == r) {
-						canearse[l][r] = true;
-					}
-					else
-						canearse[l][r] = canearse[l][r] || canearse[l + 1][r - 1];
-				}
-
-				for (k = l + 1; k + 1 < r; k += 2) {
-					canearse[l][r] = canearse[l][r] || (canearse[l][k] && canearse[k + 1][r]);
-					if (canearse[l][r]) break;
-				}
-			}
-		}
-
-
-		if (canearse[1][n]) {
-			dp[1][n] = sum[1][n];
-		}
-		else {
-			for (i = 1; i <= n; ++i) {
-				for (int l = 1; l <= n; ++l) {
-					int r = l + i - 1;
-					if (canearse[l][r]) {
-						dp[l][r] = sum[l][r];
-					}
-					else {
-						for (k = l; k < r; ++k) {
-							LL val = dp[l][k] + dp[k + 1][r];
-							if (val > dp[l][r]) dp[l][r] = val;
-							if (dp[l][r] == sum[l][r]) break;
-						}
-					}
-				}
-			}
-		}
-
-		printf("%I64d\n", dp[1][n]);
+		printf("%I64d\n", ans);
 	}
 
 	return 0;
