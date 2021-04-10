@@ -10,35 +10,40 @@ int dir[4][2] = {
 };
 
 const int maxn = 210;
-const int flag = -10209321;
-#define ll int
+const int inf = -1;
 int n, m;
-ll f[maxn][maxn];
-int mat[maxn][maxn];
-int d[maxn][maxn][5];
+int f[maxn][maxn];
+int A[maxn][maxn];
 
-void init(int n, int m) {
-    for (int i = 1; i <= n; ++i) {
-        for (int j = 1; j <= m; ++j) {
-            f[i][j] = flag;
-            d[i][j][0] = 0;
-        }
-    }
+void init() {
+    memset(f, inf, sizeof(f));
 }
 
-ll dfs(int x, int y) {
-
+int dfs(int preval, int x, int y) {
+	// 1. 坐标合法性判断
+	if(x < 1 || y < 1 || x > n || y > m) {
+	    return 0;
+	}
+	// 2. 偏序关系合法性判断
+	if(A[x][y] >= preval) {
+		return 0;
+	}
+	
+	// 3. 记忆化 
     int &val = f[x][y];
-    if (val != flag) {
+    if (val != inf) {
         return val;
     }
+    
+    // 4. 计算值 
     val = 1;
-    for (int i = 1; i <= d[x][y][0]; ++i) {
-        int dk = d[x][y][i];
-        int tx = x + dir[dk][0];
-        int ty = y + dir[dk][1];
-        val = max(val, dfs(tx, ty) + 1);
+    for (int i = 0; i < 4; ++i) {
+        int tx = x + dir[i][0];
+        int ty = y + dir[i][1];
+        val = max(val, dfs(A[x][y], tx, ty) + 1);
     }
+    
+    // 5. 返回结果 
     return val;
 }
 
@@ -46,33 +51,19 @@ ll dfs(int x, int y) {
 
 
 int main() {
-    int t, cas = 0;
-
-
-    ll a, b;
+	
     while (scanf("%d %d", &n, &m) != EOF) {
-        init(n, m);
+        init();
         for (int i = 1; i <= n; ++i) {
             for (int j = 1; j <= m; ++j) {
-                scanf("%d", &mat[i][j]);
+                scanf("%d", &A[i][j]);
 
-            }
-        }
-        for (int i = 1; i <= n; ++i) {
-            for (int j = 1; j <= m; ++j) {
-                for (int k = 0; k < 4; ++k) {
-                    int ti = i + dir[k][0];
-                    int tj = j + dir[k][1];
-                    if (ti == 0 || tj == 0 || ti>n || tj > n)
-                        continue;
-                    if (mat[i][j] > mat[ti][tj]) d[i][j][++d[i][j][0]] = k;
-                }
             }
         }
         int Max = 0;
         for (int i = 1; i <= n; ++i) {
             for (int j = 1; j <= m; ++j) {
-                Max = max(Max, dfs(i, j));
+                Max = max(Max, dfs(100000000, i, j));
             }
         }
         printf("%d\n", Max);
