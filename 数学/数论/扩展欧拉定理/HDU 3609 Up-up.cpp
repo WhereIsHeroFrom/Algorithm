@@ -69,6 +69,7 @@ int Phi(int n) {
 
 ll Exp(ll a, ll n, ll Mod) {
 	ll ans = 1;
+	a %= Mod;
 	while (n) {
 		if (n & 1) ans = ans * a % Mod;
 		a = a * a % Mod;
@@ -77,21 +78,21 @@ ll Exp(ll a, ll n, ll Mod) {
 	return ans;
 }
 
+
 const int inf = -1;
 const ll infmax = 2000000000;
-ll f(int n) {
-	if (n == 0) {
-		return 1;
+ll f(ll a, int k) {
+	if (k == 1) {
+		return a;
 	}
-	int bas = n % 10;
-	if (bas == 1) {
+	if (a == 1) {
 		// 1. 底数是1，无论指数是什么，都为1
 		return 1;
 	}
 
-	ll power = f(n / 10);
+	ll power = f(a, k - 1);
 
-	if (bas == 0) {
+	if (a == 0) {
 		// 2. 底数是0，那么根据 指数特殊处理
 		if (power == 0) {
 			return 1;
@@ -108,34 +109,38 @@ ll f(int n) {
 	else {
 		ll ans = 1;
 		for (int i = 0; i < power; ++i) {
-			ans *= bas;
+			ans *= a;
 			if (ans >= infmax) return inf;
 		}
 		return ans;
 	}
 }
 
-ll g(int n, int m) {
-	ll power = f(n / 10);
+ll g(ll a, int k, int mod) {
+	if (k == 1) {
+		return a % mod;
+	}
+	if (mod == 1) {
+		return 0;
+	}
+
+	ll power = f(a, k - 1);
 
 	if (power == inf) {
-		int eula = Phi(m);
-		return Exp(n % 10, g(n / 10, eula) + eula, m);
+		int eula = Phi(mod);
+		return Exp(a, g(a, k - 1, eula) + eula, mod);
 	}
 	else {
-		return Exp(n % 10, power, m);
+		return Exp(a, power, mod);
 	}
 }
 
 int main() {
 	Eratosthenes();
-	int n, m;
-	int t;
-	scanf("%d", &t);
-	while (t--) {
-		int p;
-		scanf("%d %d", &n, &m);
-		int ans = g(n, m);
+	int k;
+	ll a;
+	while (scanf("%lld %d", &a, &k) != EOF) {
+		int ans = g(a, k, 100000000);
 		printf("%d\n", ans);
 	}
 	return 0;
