@@ -2,42 +2,40 @@
 #include <cstring>
 using namespace std;
 
-#define LL long long
+#define ll long long
 #define MOD 1000000009
 #define MAXN 100010
 
-LL Exp(LL a,LL n, LL Mod){
-	LL ans=1;
-	if(a == 0 || a == 1) {
-		return a;
-	}
+ll Exp(ll a,ll n, ll mod){
+	ll ans = 1;
 	while(n){
-		if(n&1) ans=ans*a%Mod;
-		a=a*a%Mod;
-		n>>=1;
+		if(n & 1) 
+			ans = ans * a % mod;
+		a = a * a % mod;
+		n >>= 1;
 	}
 	return ans;
 }
 
-LL Inv(LL a, LL Mod) {
-	return Exp(a, Mod-2, Mod);
+ll Inv(ll a, ll p) {
+	return Exp(a, p-2, p);
 }
 
-LL InvPre[MAXN];
-LL zK[MAXN];
+ll InvPre[MAXN];
+ll zK[MAXN];
 
 int main() {
 	int i, j;
 	int t;
-	LL N, C;
+	ll N, C;
 	int K;
 	
-	LL sqrt5 = 383008016;
-	LL invSqrt5 = Inv(sqrt5, MOD);
-	LL inv2 = Inv(2, MOD);
-	LL x = (sqrt5 + 1)* inv2 % MOD;
-	LL y = ( (-sqrt5 + 1) * inv2 % MOD + MOD ) % MOD;
-	LL z = invSqrt5;
+	ll sqrt5 = 383008016;
+	ll invSqrt5 = Inv(sqrt5, MOD);
+	ll inv2 = Inv(2, MOD);
+	ll x = (sqrt5 + 1)* inv2 % MOD;
+	ll y = ( (-sqrt5 + 1) * inv2 % MOD + MOD ) % MOD;
+	ll z = invSqrt5;
 
 	for(int i = 0; i < MAXN; ++i) {
 		// 1. 预处理 i 的逆元 
@@ -49,19 +47,19 @@ int main() {
 	scanf("%d", &t);
 	while(t--) {
 		scanf("%I64d %I64d %d", &N, &C, &K);
-		LL ans = 0;
-		LL Ckj = 1;
+		ll ans = 0;
+		ll Ckj = 1;
 		
 		// 5. 费马小定理 （欧拉定理） 优化 
 		C %= (MOD - 1);
-		LL NT = (N + 1) % (MOD - 1);
-		LL NN = (N + 1) % MOD;
+		ll NT = (N + 1) % (MOD - 1);
+		ll NN = (N + 1) % MOD;
 		
-		LL xC = Inv( Exp(x, C, MOD), MOD );
-		LL yC = Exp(y, C, MOD);
+		ll xC = Inv( Exp(x, C, MOD), MOD );
+		ll yC = Exp(y, C, MOD);
 		
-		LL xcNow = Exp(x, C * K % (MOD - 1), MOD);
-		LL ycNow = 1, sum = 0;
+		ll xcNow = Exp(x, C * K % (MOD - 1), MOD);
+		ll ycNow = 1, sum = 0;
 		
 		for(int j = 0; j <= K; ++j) {
 			// 非性能点，这里是利用了组合数的递推公式： 
@@ -71,7 +69,7 @@ int main() {
 			}
 			
 			// 非性能点 
-			LL qj = xcNow * ycNow % MOD;
+			ll qj = xcNow * ycNow % MOD;
 			xcNow = xcNow * xC % MOD;
 			ycNow = ycNow * yC % MOD;
 			
@@ -80,9 +78,9 @@ int main() {
 				sum = Ckj * NN % MOD;
 			}else {
 				// 大性能消耗点 (注意：这里一定要用费马小定理，否则超时，而且一定要用 G++ 提交)
-				LL invqj = Inv(qj - 1, MOD);
+				ll invqj = Inv(qj - 1, MOD);
 				// 略有性能消耗 
-				LL qjN_1 = Exp(qj, NT, MOD) - 1;
+				ll qjN_1 = Exp(qj, NT, MOD) - 1;
 				// 无性能消耗 
 				sum = qjN_1 * invqj % MOD * Ckj % MOD;
 			} 
